@@ -3,13 +3,14 @@ import {
   View,
   TouchableNativeFeedback,
   Platform,
+  Pressable,
   Animated,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Man from "@/assets/images/onboarding/man";
 import ManBg from "@/assets/images/onboarding/manbg";
 import Message from "@/assets/images/onboarding/message";
 import MessageBg from "@/assets/images/onboarding/messagebg";
-
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 
@@ -18,88 +19,82 @@ export default function Onboarding1() {
   const [currentPage, setCurrentPage] = useState(0);
   const totalPages = 2;
 
-  // Create new animated values
   const translateY = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     fadeAnim.setValue(0);
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: 500,
-      useNativeDriver: true, // Keep opacity animation native
+      useNativeDriver: true,
     }).start();
   }, [currentPage]);
 
-  // SVG animation (must be JS-driven)
   useEffect(() => {
-    // Reset translateY to avoid driver conflict
     translateY.setValue(0);
-
     Animated.loop(
       Animated.sequence([
         Animated.timing(translateY, {
           toValue: -20,
           duration: 1000,
-          useNativeDriver: false, // Must be false for SVG transforms
+          useNativeDriver: false,
         }),
         Animated.timing(translateY, {
           toValue: 0,
           duration: 1000,
-          useNativeDriver: false, // Consistent driver usage
+          useNativeDriver: false,
         }),
       ])
     ).start();
   }, []);
 
+  const isAndroid = Platform.OS === "android";
+
   return (
     <View className="bg-secondary w-full h-full relative flex justify-between">
-      {/* Wrap in Animated.View for better transform handling */}
-
       {currentPage === 0 ? (
         <>
-          {/* Single animated container for both properties */}
           <Animated.View
             className="relative mx-auto z-[2] my-auto"
             style={{
               transform: [{ translateY }],
-              elevation: 1, // Required for Android
+              elevation: 1,
             }}
           >
             <Man />
           </Animated.View>
-
-          {/* Static background element */}
           <View className="absolute z-[1] top-0 w-full justify-center items-center">
             <ManBg />
           </View>
         </>
       ) : (
         <>
-          {/* Separate opacity and translateY animations */}
-          <Animated.View // Native-driven opacity
-            style={{ opacity: fadeAnim }}
-          >
-            <Animated.View // JS-driven translateY
+          <Animated.View style={{ opacity: fadeAnim }}>
+            <Animated.View
               className="relative mx-auto z-[2] mt-10"
               style={{ transform: [{ translateY }] }}
             >
               <Message />
             </Animated.View>
-
-            <View className="absolute z-[1] top-0 w-full justify-center items-center ">
+            <View className="absolute z-[1] top-0 w-full justify-center items-center">
               <MessageBg />
             </View>
           </Animated.View>
         </>
       )}
 
-      {/* ... rest of your component ... */}
-      <View className="w-full h-[60%] relative bottom-0 bg-background rounded-t-[50px]">
+      <View
+        className="w-full h-[60%] bg-background rounded-t-[50px]"
+        style={{
+          
+        }}
+      >
         <View className="w-[34px] h-[3px] rounded-full relative my-4 mx-auto bg-zinc-700"></View>
 
-        <View className="w-full h-full px-10 py-4 justify-between">
-          {/* Text with Fade-in Animation */}
+        <View className="w-full h-full px-10 py-4 justify-between flex-1">
           <View>
             <Animated.Text
               style={{ opacity: fadeAnim }}
@@ -109,7 +104,6 @@ export default function Onboarding1() {
                 ? `Share, Chat, and Explore \n with Auragram`
                 : `Connect with friends and share your moments`}
             </Animated.Text>
-
             <Animated.Text
               style={{ opacity: fadeAnim }}
               className="text-zinc-400 text-center"
@@ -120,8 +114,7 @@ export default function Onboarding1() {
             </Animated.Text>
           </View>
 
-          {/* Pagination Dots (Above Buttons) */}
-          <View className="flex flex-row justify-center my-4">
+          <View className="flex flex-row justify-center my-2">
             {Array.from({ length: totalPages }).map((_, index) => (
               <View
                 key={index}
@@ -132,37 +125,46 @@ export default function Onboarding1() {
             ))}
           </View>
 
-          {/* Custom Buttons (Ripple on Android, Normal on iOS) */}
-          <View className="w-full gap-3 pb-12">
-            <View className="overflow-hidden rounded-full">
-              <TouchableNativeFeedback
-                background={TouchableNativeFeedback.Ripple("#ffffff20", false)}
-                onPress={() => {
-                  if (currentPage < totalPages - 1) {
-                    setCurrentPage(currentPage + 1);
-                  } else {
-                    router.push("/auth");
-                  }
-                }}
-                disabled={Platform.OS !== "android"} // Ripple only on Android
-              >
-                <View className="bg-[#FF4D67] py-3 rounded-lg items-center">
-                  <Text className="text-white font-bold text-lg">Next</Text>
-                </View>
-              </TouchableNativeFeedback>
-            </View>
+          {/* BUTTONS */}
+          <View className="w-full gap-3 ">
+            {["Next", "Skip"].map((label, index) => {
+              const handlePress = () => {
+                if (label === "Next" && currentPage < totalPages - 1) {
+                  setCurrentPage(currentPage + 1);
+                } else {
+                  router.push("/auth");
+                }
+              };
 
-            <View className="overflow-hidden rounded-full">
-              <TouchableNativeFeedback
-                background={TouchableNativeFeedback.Ripple("#ffffff20", false)}
-                onPress={() => router.push("/auth")}
-                disabled={Platform.OS !== "android"} // Ripple only on Android
-              >
-                <View className="bg-zinc-800 py-3 rounded-lg items-center">
-                  <Text className="text-white font-bold text-lg">Skip</Text>
+              return (
+                <View key={index} className="overflow-hidden rounded-full">
+                  {isAndroid ? (
+                    <TouchableNativeFeedback
+                      background={TouchableNativeFeedback.Ripple("#ffffff20", false)}
+                      onPress={handlePress}
+                    >
+                      <View
+                        className={`py-3 rounded-lg items-center ${
+                          label === "Next" ? "bg-[#FF4D67]" : "bg-zinc-800"
+                        }`}
+                      >
+                        <Text className="text-white font-bold text-lg">{label}</Text>
+                      </View>
+                    </TouchableNativeFeedback>
+                  ) : (
+                    <Pressable onPress={handlePress} style={{ borderRadius: 999 }}>
+                      <View
+                        className={`py-3 rounded-lg items-center ${
+                          label === "Next" ? "bg-[#FF4D67]" : "bg-zinc-800"
+                        }`}
+                      >
+                        <Text className="text-white font-bold text-lg">{label}</Text>
+                      </View>
+                    </Pressable>
+                  )}
                 </View>
-              </TouchableNativeFeedback>
-            </View>
+              );
+            })}
           </View>
         </View>
       </View>

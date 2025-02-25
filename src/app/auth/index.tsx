@@ -5,13 +5,13 @@ import {
   Platform,
   Animated,
   Image,
+  Pressable,
 } from "react-native";
-import Man from "@/assets/images/onboarding/man";
-import ManBg from "@/assets/images/onboarding/manbg";
-import Message from "@/assets/images/onboarding/message";
-import MessageBg from "@/assets/images/onboarding/messagebg";
 
-import { useRouter } from "expo-router";
+import Fly from '@/assets/images/onboarding/fly'
+import FlyBg from '@/assets/images/onboarding/flybg'
+
+import { Link, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 
 export default function AuthIndex() {
@@ -63,12 +63,12 @@ export default function AuthIndex() {
           elevation: 1, // Required for Android
         }}
       >
-        <Man />
+        <Fly />
       </Animated.View>
 
       {/* Static background element */}
       <View className="absolute z-[1] top-0 w-full justify-center items-center">
-        <ManBg />
+        <FlyBg />
       </View>
 
       {/* ... rest of your component ... */}
@@ -132,6 +132,36 @@ export default function AuthIndex() {
             </View>
           </TouchableNativeFeedback>
         </View>
+
+        {/* OR */}
+        <View className="flex-row relative w-full items-center justify-between mt-8">
+          <View className="w-[45%] h-[1px] bg-zinc-800"></View>
+          <Text className="text-zinc-400">OR</Text>
+          <View className=" w-[45%] h-[1px] bg-zinc-800"></View>
+        </View>
+
+        {Platform.OS === "android" ? (
+          <TouchableNativeFeedback
+            background={TouchableNativeFeedback.Ripple("#ffffff20", false)}
+            onPress={() => router.push("/auth/signup")}
+          >
+            <View
+              className="py-3 rounded-lg mt-4 items-center bg-[#FF4D67]"
+            >
+              <Text className="text-white font-medium text-lg">Signup With Password</Text>
+            </View>
+          </TouchableNativeFeedback>
+        ) : (
+          <Pressable onPress={()=> router.push("/auth/signup")} style={{ borderRadius: 999 }}>
+            <View
+              className={`py-3 rounded-lg mt-4 items-centerbg-[#FF4D67]`}
+            >
+              <Text className="text-white font-medium text-lg">Signup With Password</Text>
+            </View>
+          </Pressable>
+        )}
+
+        <Text className="text-zinc-500 text-center mt-4">Alredy Have An Account? <Link href="/auth/login" className="text-[#FF4D67]">Login</Link></Text>
       </View>
     </View>
   );
